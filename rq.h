@@ -19,6 +19,24 @@ typedef struct {
     int size;
 } ReadyQueue;
 
+
+typedef struct {
+    int task_id;
+    float total_actual;    // work units done (= WCET if no miss)
+    float total_wallclock; // real elapsed time spent running
+    float total_wcet;
+    float total_slack;     // sum of (deadline - completion_time)
+    float reported_actual;    // ← track what's already been added to total_actual
+    float reported_wallclock;
+    int jobs_completed;
+    int deadline_misses;
+    int jobs_released;
+} TaskStats;
+
+#define MAX_TASKS 50
+extern TaskStats stats[MAX_TASKS];
+extern int stats_n;
+
 void rq_init(ReadyQueue *rq);
 
 // Add new job (only if no active job exists)

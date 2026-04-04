@@ -5,21 +5,15 @@
 
 float compute_utilization(ReadyQueue *rq) {
     float U = 0;
-    printf("\n\n");
     for (int i = 0; i < rq->size; i++) {
         Task *t = &rq->tasks[i];
         
-        printf("Task %d.%d: actual=%.2f, wcet=%.2f, period=%.2f\n",
-               t->id, t->job_id, t->actual, t->wcet, t->period);
-
         if (t->period <= 0) continue;
-
         if (t->completed){
-            printf("  → Completed, contributes %.2f\n", t->actual / t->period);
+            
             U += t->actual / t->period;
         }
         else{
-            printf("  → In progress, contributes %.2f\n", t->wcet / t->period);
             U += t->wcet / t->period;
         }
     }
@@ -45,18 +39,13 @@ int select_task(ReadyQueue *rq) {
 }
 
 float select_frequency(float U) {
-    float f_min = 0.2f, f_max = 1.0f , f1 = 0.90f;
+   
+    float levels[] = {0.50, 0.60, 0.70, 0.80, 0.90, 1.00};
+    int   n        = 6;
 
-    if (U <= 0.0f) return f_min;
-
-    if (U > 1.0f) {
-        printf("OVERLOAD: U = %.2f\n", U);
+    for (int i = 0; i < n; i++) {
+        if (levels[i] >= U - 1e-6f)
+            return levels[i];
     }
-
-
-    if (U < f_min) return f_min;
-    if (f_min < U && U <= f1 ) return f1;
-    if (U > f_max) return f_max;
-
-    return f_max;
+    return 1.00f;  // cap at max if overloaded
 }

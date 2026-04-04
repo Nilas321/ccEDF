@@ -24,9 +24,17 @@ void rq_add_job(ReadyQueue *rq, Task base, float current_time) {
 
         Task *t = &rq->tasks[idx];
 
-        if (!t->completed && t->remaining > 0) {
-            printf("DEADLINE MISS: Task %d\n", base.id);
+        if (!t->completed && t->remaining > 1e-4) {
+            printf("DEADLINE MISS: Task %d | miss count now %d\n",
+           base.id, stats[base.id - 1].deadline_misses + 1);
+           
+            stats[base.id - 1].deadline_misses++;
+        if (t->actual > 1e-6f) {
+        stats[base.id - 1].total_actual    += t->actual;
+        stats[base.id - 1].total_wallclock += t->wallclock_accumulated;
         }
+    }
+        stats[base.id - 1].jobs_released++;
 
         job_counter[base.id]++;
         t->job_id = job_counter[base.id];
@@ -42,7 +50,7 @@ void rq_add_job(ReadyQueue *rq, Task base, float current_time) {
 
         return;
     }
-
+    stats[base.id - 1].jobs_released++;
     Task t = base;
 
     job_counter[base.id]++;

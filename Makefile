@@ -2,14 +2,15 @@ CC = gcc
 CFLAGS = -Wall -O2
 
 TARGET = sim
+DRIVER ?= main
 
 all: $(TARGET)
 
-$(TARGET): main.o sim.o ReadyQueue.o EventQueue.o ccEDF.o
-	$(CC) $(CFLAGS) -o $(TARGET) main.o sim.o ReadyQueue.o EventQueue.o ccEDF.o
+$(TARGET): $(DRIVER).o sim.o ReadyQueue.o EventQueue.o ccEDF.o
+	$(CC) $(CFLAGS) -o $(TARGET) $(DRIVER).o sim.o ReadyQueue.o EventQueue.o ccEDF.o
 
-main.o: main.c sim.h rq.h
-	$(CC) $(CFLAGS) -c main.c
+$(DRIVER).o: $(DRIVER).c sim.h rq.h
+	$(CC) $(CFLAGS) -c $(DRIVER).c
 
 sim.o: sim.c sim.h rq.h eq.h ccedf.h
 	$(CC) $(CFLAGS) -c sim.c
