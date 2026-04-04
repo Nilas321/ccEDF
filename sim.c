@@ -55,6 +55,7 @@ void run_simulation(Task base[], int n, float H) {
     stats[i].task_id = base[i].id;
     stats[i].total_actual = 0;
     stats[i].total_wcet = 0;
+    stats[i].total_slack    = 0;      // ← missing
     stats[i].jobs_completed = 0;
     }
 
@@ -126,61 +127,79 @@ void run_simulation(Task base[], int n, float H) {
 
             float work_done = f * delta;
             t->actual += work_done;
+            t->wallclock_accumulated += delta;
             current_time = stop_time;
+
 
             if (t->remaining <= work_done + 1e-6) {
                 t->remaining = 0;
                 printf("→ Task %d.%d completes at %.2f (actual=%.2f)\n",
                        t->id, t->job_id, current_time, t->actual);
+                
+                stats[t->id - 1].total_actual    += t->actual;
+                stats[t->id - 1].total_wcet      += base[t->id - 1].wcet;
+                stats[t->id - 1].total_wallclock += t->wallclock_accumulated;
+                stats[t->id - 1].total_slack     += (t->deadline - current_time);
+                stats[t->id - 1].jobs_completed++;
+
+                       
                 rq_complete_job(&rq, t->id);
 
-                stats[t->id - 1].total_actual += t->actual;
-                stats[t->id - 1].total_wcet   += base[t->id - 1].wcet;
-                stats[t->id - 1].jobs_completed++;
+
 
                 // stay in inner loop, pop new releases and re-decide
             } else {
                 t->remaining -= work_done;
                 printf("→ Task %d.%d preempted, remaining=%.2f\n",
                        t->id, t->job_id, t->remaining);
+                
                 break;
             }
         }
     }
 
-    // 🔹 Final Dashboard
-    printf("\n╔══════════════════════════════════════════════════════╗\n");
-    printf(  "║                  SIMULATION DASHBOARD                ║\n");
-    printf(  "╚══════════════════════════════════════════════════════╝\n");
-    printf("%-6s %-8s %-12s %-12s %-10s\n",
-           "Task", "Jobs", "WCET Used", "Actual Used", "Efficiency");
-    printf("──────────────────────────────────────────────────────\n");
+   printf("\n╔══════════════════════════════════════════════════════════════════════╗\n");
+    printf(  "║                       SIMULATION DASHBOARD                          ║\n");
+    printf(  "╚══════════════════════════════════════════════════════════════════════╝\n");
+    printf("%-6s %-6s %-8s %-10s %-12s %-10s %-10s\n",
+           "Task", "Jobs", "WCET", "Work Done", "Wall-Clock", "Overhead", "Avg Slack");
+    printf("──────────────────────────────────────────────────────────────────────\n");
 
-    float total_actual = 0;
-    float total_wcet   = 0;
+    float total_actual    = 0;
+    float total_wallclock = 0;
+    float total_wcet      = 0;
+    float total_slack     = 0;
 
     for (int i = 0; i < n; i++) {
-        float efficiency = (stats[i].total_wcet > 0)
-                         ? (stats[i].total_actual / stats[i].total_wcet) * 100.0f
-                         : 0;
-        printf("T%-5d %-8d %-12.2f %-12.2f %.1f%%\n",
+        float overhead  = stats[i].total_wallclock - stats[i].total_actual;
+        float avg_slack = stats[i].jobs_completed > 0
+                        ? stats[i].total_slack / stats[i].jobs_completed : 0;
+
+        printf("T%-5d %-6d %-8.2f %-10.2f %-12.2f %-10.2f %-10.2f\n",
                stats[i].task_id,
                stats[i].jobs_completed,
                stats[i].total_wcet,
                stats[i].total_actual,
-               efficiency);
+               stats[i].total_wallclock,
+               overhead,
+               avg_slack);
 
-        total_actual += stats[i].total_actual;
-        total_wcet   += stats[i].total_wcet;
+        total_actual    += stats[i].total_actual;
+        total_wallclock += stats[i].total_wallclock;
+        total_wcet      += stats[i].total_wcet;
+        total_slack     += stats[i].total_slack;
     }
 
-    printf("──────────────────────────────────────────────────────\n");
-    printf("%-6s %-8s %-12.2f %-12.2f %.1f%%\n",
+    float total_overhead = total_wallclock - total_actual;
+    printf("──────────────────────────────────────────────────────────────────────\n");
+    printf("%-6s %-6s %-8.2f %-10.2f %-12.2f %-10.2f\n",
            "TOTAL", "",
-           total_wcet, total_actual,
-           (total_wcet > 0) ? (total_actual / total_wcet) * 100.0f : 0);
+           total_wcet, total_actual, total_wallclock, total_overhead);
 
-    float cpu_utilisation = (total_actual / H) * 100.0f;
-    printf("\nCPU Utilisation over H=%.2f : %.2f%%\n", H, cpu_utilisation);
-    printf("══════════════════════════════════════════════════════\n");
+    printf("\nWork Utilisation  (WCET / H)       : %.2f%%\n", (total_actual    / H) * 100.0f);
+    printf("Wall-Clock Usage  (wallclock / H)  : %.2f%%\n", (total_wallclock / H) * 100.0f);
+    printf("Freq Overhead     (overhead / WCET): %.2f%%\n",
+           (total_actual > 0) ? (total_overhead / total_actual) * 100.0f : 0);
+    printf("Idle Time         (H - wallclock)  : %.2f units\n", H - total_wallclock);
+    printf("══════════════════════════════════════════════════════════════════════\n");
 }

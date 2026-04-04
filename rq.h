@@ -10,7 +10,7 @@ typedef struct {
     float remaining;
     float actual;
     float deadline;
-
+    float wallclock_accumulated;
     int completed;
 } Task;
 

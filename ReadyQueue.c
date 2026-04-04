@@ -35,6 +35,7 @@ void rq_add_job(ReadyQueue *rq, Task base, float current_time) {
         t->completed = 0;
         t->deadline = current_time + base.period;
         t->actual = 0;
+        t->wallclock_accumulated = 0;
 
         printf(" Reset T%d.%d (deadline=%.2f)\n",
                t->id, t->job_id, t->deadline);
@@ -51,6 +52,7 @@ void rq_add_job(ReadyQueue *rq, Task base, float current_time) {
     t.completed = 0;
     t.deadline = current_time + t.period;
     t.actual = 0;
+    t.wallclock_accumulated = 0;  // ← was missing
 
     rq->tasks[rq->size++] = t;
 

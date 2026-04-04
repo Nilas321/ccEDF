@@ -45,7 +45,7 @@ int select_task(ReadyQueue *rq) {
 }
 
 float select_frequency(float U) {
-    float f_min = 0.2f, f_max = 1.0f;
+    float f_min = 0.2f, f_max = 1.0f , f1 = 0.90f;
 
     if (U <= 0.0f) return f_min;
 
@@ -53,7 +53,9 @@ float select_frequency(float U) {
         printf("OVERLOAD: U = %.2f\n", U);
     }
 
+
     if (U < f_min) return f_min;
+    if (f_min < U && U <= f1 ) return f1;
     if (U > f_max) return f_max;
 
     return f_max;
