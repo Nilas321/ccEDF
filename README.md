@@ -45,11 +45,11 @@ make clean
 ├── sim.c           # Core simulation loop + dashboard
 ├── sim.h           # Public interface for run_simulation()
 ├── rq.c            # Ready queue implementation
-├── rq.h            # Task and ReadyQueue structs
+├── ReadyQueue.h            # Task and ReadyQueue structs
 ├── eq.c            # Event queue implementation
-├── eq.h            # Event structs
-├── ccedf.c         # ccEDF policy: task selection, utilization, frequency
-├── ccedf.h         # TaskStats struct, extern stats[], ccEDF interface
+├── EventQueue.h            # Event structs
+├── ccEDF.c         # ccEDF policy: task selection, utilization, frequency
+├── ccEDF.h         # TaskStats struct, extern stats[], ccEDF interface
 └── Makefile
 ```
 
