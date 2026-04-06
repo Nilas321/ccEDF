@@ -1,6 +1,6 @@
 # ccEDF Scheduler Simulator
 
-A discrete-event simulation of the **Consumption-Constrained Earliest Deadline First (ccEDF)** scheduling algorithm with **Dynamic Voltage and Frequency Scaling (DVFS)**.
+A discrete-event simulation of the **Cycle-Constrained Earliest Deadline First (ccEDF)** scheduling algorithm with **Dynamic Voltage and Frequency Scaling (DVFS)**.
 
 ---
 
