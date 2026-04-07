@@ -26,8 +26,6 @@ typedef struct {
     float total_wallclock; // real elapsed time spent running
     float total_wcet;
     float total_slack;     // sum of (deadline - completion_time)
-    float reported_actual;    // ← track what's already been added to total_actual
-    float reported_wallclock;
     int jobs_completed;
     int deadline_misses;
     int jobs_released;
@@ -44,8 +42,5 @@ void rq_add_job(ReadyQueue *rq, Task base, float current_time);
 
 // Complete job
 void rq_complete_job(ReadyQueue *rq, int task_id);
-
-// Find active job of a task
-int rq_find_active_job(ReadyQueue *rq, int task_id);
 
 #endif

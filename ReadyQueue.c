@@ -1,10 +1,12 @@
 #include <stdio.h>
+#include <string.h>
 #include "rq.h"
 
 static int job_counter[50] = {0};
 
 void rq_init(ReadyQueue *rq) {
     rq->size = 0;
+    memset(job_counter, 0, sizeof(job_counter));
 }
 
 int rq_find_task(ReadyQueue *rq, int task_id) {
@@ -60,7 +62,7 @@ void rq_add_job(ReadyQueue *rq, Task base, float current_time) {
     t.completed = 0;
     t.deadline = current_time + t.period;
     t.actual = 0;
-    t.wallclock_accumulated = 0;  // ← was missing
+    t.wallclock_accumulated = 0;  
 
     rq->tasks[rq->size++] = t;
 

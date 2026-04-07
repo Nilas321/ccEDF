@@ -33,7 +33,6 @@ int pop_events_at_time(EventQueue *eq, Event batch[], float time) {
     return count;
 }
 
-// 🔹 Find next strictly future time
 float get_next_time(EventQueue *eq, float current_time) {
     for (int i = 0; i < eq->size; i++) {
         if (eq->events[i].time > current_time)
@@ -80,10 +79,9 @@ void run_simulation(Task base[], int n, float H) {
             }
         }
 
-        // 🔹 Inner loop: keep making decisions at current_time
         //    until rq is empty or a future release pulls us forward
          while (current_time <= H) {
-
+            
             // Pop any releases that have come due at current_time
             Event batch2[50];
             int count2 = pop_events_at_time(&eq, batch2, current_time);
@@ -106,7 +104,7 @@ void run_simulation(Task base[], int n, float H) {
             }
 
             Task *t = &rq.tasks[idx];
-
+    
             printf("Selected Task %d.%d (deadline=%.2f)\n",
                    t->id, t->job_id, t->deadline);
 
@@ -138,9 +136,9 @@ void run_simulation(Task base[], int n, float H) {
             current_time = stop_time;
 
 
-            if (t->remaining <= work_done + 1e-6) {
+            if (t->remaining <= work_done + 1e-4) {
                 t->remaining = 0;
-                printf("→ Task %d.%d completes at %.2f (actual=%.2f)\n",
+                printf(" Task %d.%d completes at %.2f (actual=%.2f)\n",
                        t->id, t->job_id, current_time, t->actual);
                 
                 stats[t->id - 1].total_actual    += t->actual;
@@ -151,16 +149,15 @@ void run_simulation(Task base[], int n, float H) {
 
                        
                 rq_complete_job(&rq, t->id);
-
-
-
                 // stay in inner loop, pop new releases and re-decide
             } else {
+                printf(" Task %d.%d runs for %.2f, work done=%.2f, remaining=%.2f\n",
+                       t->id, t->job_id, delta, work_done, t->remaining - work_done);
                 t->remaining -= work_done;
                if (current_time >= H - 1e-6f) {
-                printf("→ Task %d.%d incomplete at H=%.2f, remaining=%.2f\n",
+                printf(" Task %d.%d incomplete at H=%.2f, remaining=%.2f\n",
                        t->id, t->job_id, H, t->remaining);
-                if (t->deadline <= H + 1e-6f) {
+                if (t->deadline <= H + 1e-4f) {
                     printf("DEADLINE MISS: Task %d (hit hyperperiod boundary)\n", t->id);
                     stats[t->id - 1].deadline_misses++;
                 }
